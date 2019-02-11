@@ -64,12 +64,8 @@ public class ScannerService extends Service {
     private List<ScanFilter> scanFilters = new ArrayList<ScanFilter>();
     private ScanSettings scanSettings;
     private Handler handler;
-    private Handler bgScanHandler;
     private boolean isForegroundMode = false;
     private boolean foreground = false;
-    private int backgroundScanInterval = Constants.DEFAULT_SCAN_INTERVAL;
-    private static List<RuuviTag> backgroundTags = new ArrayList<>();
-    private static final int SCAN_TIME_MS = 5000;
     private Location tagLocation;
     private PowerManager.WakeLock wakeLock;
 
@@ -94,10 +90,9 @@ public class ScannerService extends Service {
         bluetoothAdapter = bluetoothManager.getAdapter();
         scanner = bluetoothAdapter.getBluetoothLeScanner();
 
-        if (getForegroundMode()) startFG();
+        startFG();
         handler = new Handler();
-        handler.post(reStarter);
-        bgScanHandler = new Handler();
+        handler.post(starter);
     }
 
     private void updateLocation() {
@@ -114,47 +109,28 @@ public class ScannerService extends Service {
 
     private boolean getForegroundMode() {
         Preferences prefs = new Preferences(this);
-        int getInterval =  prefs.getBackgroundScanInterval();
-        return prefs.getBackgroundScanMode() == BackgroundScanModes.DISABLED && getInterval < 15 * 60;
-        //return settings.getBoolean("pref_bgscan", false);
+        return prefs.getBackgroundScanMode() == BackgroundScanModes.GATEWAY;
     }
 
     private Runnable reStarter = new Runnable() {
         @Override
         public void run() {
+            Log.d(TAG, "Restarting scanner");
             stopScan();
-            startScan();
-            handler.postDelayed(reStarter, 5 * 60 * 1000);
+            handler.postDelayed(starter, 1000);
         }
     };
 
-    private Runnable bgLogger = new Runnable() {
+    private Runnable starter = new Runnable() {
         @Override
         public void run() {
-            Log.d(TAG, "Started background scan");
-            backgroundTags.clear();
-            startScan();
+            Log.d(TAG, "Restarting scanner");
             updateLocation();
-            Log.d(TAG, "Scheduling next scan in " + backgroundScanInterval + "s");
-            bgScanHandler.postDelayed(bgLogger, backgroundScanInterval * 1000);
-            bgScanHandler.postDelayed(bgLoggerDone, SCAN_TIME_MS);
+            handler.postDelayed(reStarter, 5 * 60 * 1000);
+            startScan();
         }
     };
 
-    private Runnable bgLoggerDone = new Runnable() {
-        @Override
-        public void run() {
-            Log.d(TAG, "Stopping background scan, found " + backgroundTags.size() + " tags");
-            stopScan();
-            Http.post(backgroundTags, tagLocation, getApplicationContext());
-
-            for (RuuviTag tag: backgroundTags) {
-                TagSensorReading reading = new TagSensorReading(tag);
-                reading.save();
-                AlarmChecker.check(tag, getApplicationContext());
-            }
-        }
-    };
 
     public void startFG() {
         NotificationManager notificationManager =
@@ -182,7 +158,7 @@ public class ScannerService extends Service {
         NotificationCompat.Builder notification;
         notification
                 = new NotificationCompat.Builder(getApplicationContext(), channelId)
-                .setContentTitle(this.getString(R.string.scanner_notification_title))
+                .setContentTitle(this.getString(R.string.gateway_notification_title))
                 .setSmallIcon(R.mipmap.ic_launcher_small)
                 .setTicker(this.getString(R.string.scanner_notification_ticker))
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(this.getString(R.string.scanner_notification_message)))
@@ -241,6 +217,7 @@ public class ScannerService extends Service {
 
     @Override
     public void onDestroy() {
+        Log.d(TAG, "DESTROYED");
         stopScan();
         super.onDestroy();
     }
@@ -262,44 +239,36 @@ public class ScannerService extends Service {
                 }
             }
             foreground = true;
-            handler.postDelayed(reStarter, 5 * 60 * 1000);
             if (!isRunning(ScannerService.class))
                 startService(new Intent(ScannerService.this, ScannerService.class));
-            bgScanHandler.removeCallbacksAndMessages(null);
         }
 
         public void onBecameBackground() {
             foreground = false;
-            handler.removeCallbacksAndMessages(null);
             if (!getForegroundMode()) {
+                handler.removeCallbacksAndMessages(null);
                 stopSelf();
                 isForegroundMode = false;
             } else {
-                Preferences prefs = new Preferences(getApplicationContext());
-                if (prefs.getServiceWakelock()) {
-                    PowerManager powerManager = (PowerManager) getApplicationContext().getSystemService(POWER_SERVICE);
-                    try {
-                        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                                "ruuviStation:serviceWakelock");
-                        wakeLock.acquire();
-                        Log.d(TAG, "Acquired wakelock");
-                    } catch (Exception e) {
-                        Log.e(TAG, "Could not acquire wakelock");
-                    }
-                } else {
-                    wakeLock = null;
+                PowerManager powerManager = (PowerManager) getApplicationContext().getSystemService(POWER_SERVICE);
+                try {
+                    wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                            "ruuviStation:serviceWakelock");
+                    wakeLock.acquire();
+                    Log.d(TAG, "Acquired wakelock");
+                } catch (Exception e) {
+                    Log.e(TAG, "Could not acquire wakelock");
                 }
-                backgroundScanInterval = prefs.getBackgroundScanInterval();
                 if (!isForegroundMode) startFG();
-                bgScanHandler.postDelayed(bgLogger, backgroundScanInterval * 1000);
             }
         }
     };
 
     public static Map<String, Long> lastLogged = null;
-    public static int LOG_INTERVAL = 5; // seconds
+    public static int LOG_INTERVAL = 0; // seconds
 
     public static void logTag(RuuviTag ruuviTag, Context context, boolean foreground) {
+        Log.d(TAG, ruuviTag.id);
         RuuviTag dbTag = RuuviTag.get(ruuviTag.id);
         if (dbTag != null) {
             ruuviTag = dbTag.preserveData(ruuviTag);
@@ -308,13 +277,6 @@ public class ScannerService extends Service {
         } else {
             ruuviTag.updateAt = new Date();
             ruuviTag.save();
-            return;
-        }
-
-        if (!foreground) {
-            if (ruuviTag.favorite && checkForSameTag(backgroundTags, ruuviTag) == -1) {
-                backgroundTags.add(ruuviTag);
-            }
             return;
         }
 

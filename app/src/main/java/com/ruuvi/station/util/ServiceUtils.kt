@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Build
 import com.ruuvi.station.service.AltBeaconScannerForegroundService
 import com.ruuvi.station.service.AltBeaconScannerService
+import com.ruuvi.station.service.ScannerService
 
 class ServiceUtils(val context: Context) {
     fun stopService(): ServiceUtils {
@@ -22,19 +23,38 @@ class ServiceUtils(val context: Context) {
         return this
     }
 
+    fun stopGatewayService(): ServiceUtils {
+        val scannerService = Intent(context, ScannerService::class.java)
+        context.stopService(scannerService)
+        return this
+    }
+
     fun stopForegroundService(): ServiceUtils {
         val scannerService = Intent(context, AltBeaconScannerForegroundService::class.java)
         context.stopService(scannerService)
         return this
     }
 
-    fun startForegroundService(): ServiceUtils {
-        if (!isRunning(AltBeaconScannerForegroundService::class.java)) {
-            val scannerService = Intent(context, AltBeaconScannerForegroundService::class.java)
-            if (Build.VERSION.SDK_INT >= 26) {
-                context.startForegroundService(scannerService)
-            } else {
-                context.startService(scannerService)
+    fun startForegroundService(scanMode: BackgroundScanModes): ServiceUtils {
+        if (scanMode == BackgroundScanModes.FOREGROUND) {
+            if (!isRunning(AltBeaconScannerForegroundService::class.java)) {
+                stopGatewayService()
+                val scannerService = Intent(context, AltBeaconScannerForegroundService::class.java)
+                if (Build.VERSION.SDK_INT >= 26) {
+                    context.startForegroundService(scannerService)
+                } else {
+                    context.startService(scannerService)
+                }
+            }
+        } else if (scanMode == BackgroundScanModes.GATEWAY) {
+            if (!isRunning(ScannerService::class.java)) {
+                stopForegroundService()
+                val scannerService = Intent(context, ScannerService::class.java)
+                if (Build.VERSION.SDK_INT >= 26) {
+                    context.startForegroundService(scannerService)
+                } else {
+                    context.startService(scannerService)
+                }
             }
         }
         return this

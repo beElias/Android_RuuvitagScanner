@@ -106,6 +106,7 @@
     <string name="pref_title_system_sync_settings">System sync settings</string>
 
     <!-- Example settings for Notifications -->
+    <string name="gateway_notification_title">Scanning..</string>
     <string name="scanner_notification_title">Scanning..</string>
     <string name="scanner_notification_message">You can disable background scanning in settings</string>
     <string name="scanner_notification_ticker">Scanner started</string>
@@ -279,6 +280,7 @@
     <string name="no_background_scanning">No background scanning</string>
     <string name="continuous_background_scanning">Continuous background scanning</string>
     <string name="lazy_background_scanning">Lazy background scanning (EXPERIMENTAL)</string>
+    <string name="gateway_mode">Gateway mode</string>
     <string name="background_scanning_disabled">Background scanning is disabled</string>
     <string name="disable_this_alarm">Disable this alarm</string>
     <string name="remove_this_ruuvitag">Remove this RuuviTag</string>

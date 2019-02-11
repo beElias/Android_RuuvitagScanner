@@ -63,10 +63,10 @@ public class RuuviScannerApplication extends Application implements BeaconConsum
     }
 
     private boolean runForegroundIfEnabled() {
-        if (prefs.getBackgroundScanMode() == BackgroundScanModes.FOREGROUND) {
+        if (prefs.getBackgroundScanMode() == BackgroundScanModes.FOREGROUND || prefs.getBackgroundScanMode() == BackgroundScanModes.GATEWAY) {
             ServiceUtils su = new ServiceUtils(getApplicationContext());
             disposeStuff();
-            su.startForegroundService();
+            su.startForegroundService(prefs.getBackgroundScanMode());
             return true;
         }
         return false;
@@ -147,8 +147,8 @@ public class RuuviScannerApplication extends Application implements BeaconConsum
             @Override
             public void run() {
                 if (!foreground) {
-                    if (prefs.getBackgroundScanMode() == BackgroundScanModes.FOREGROUND) {
-                        new ServiceUtils(getApplicationContext()).startForegroundService();
+                    if (prefs.getBackgroundScanMode() == BackgroundScanModes.FOREGROUND || prefs.getBackgroundScanMode() == BackgroundScanModes.GATEWAY) {
+                        new ServiceUtils(getApplicationContext()).startForegroundService(prefs.getBackgroundScanMode());
                     } else if (prefs.getBackgroundScanMode() == BackgroundScanModes.BACKGROUND) {
                         startBackgroundScanning();
                     }
@@ -181,7 +181,7 @@ public class RuuviScannerApplication extends Application implements BeaconConsum
                 }
             } else {
                 disposeStuff();
-                su.startForegroundService();
+                su.startForegroundService(prefs.getBackgroundScanMode());
             }
             if (ruuviRangeNotifier != null) ruuviRangeNotifier.gatewayOn = true;
         }

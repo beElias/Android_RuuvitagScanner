@@ -68,7 +68,8 @@ class AppSettingsDetailFragment : Fragment() {
             val list = listOf(
                     getString(R.string.no_background_scanning),
                     getString(R.string.continuous_background_scanning),
-                    getString(R.string.lazy_background_scanning)
+                    getString(R.string.lazy_background_scanning),
+                    getString(R.string.gateway_mode)
             )
             var current = prefs.backgroundScanMode
             setBackgroundScanText(current)

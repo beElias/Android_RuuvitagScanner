@@ -1,6 +1,5 @@
 package com.ruuvi.station.service;
 
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -15,16 +14,14 @@ import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.ruuvi.station.R;
 import com.ruuvi.station.RuuviScannerApplication;
 import com.ruuvi.station.feature.StartupActivity;
-import com.ruuvi.station.util.BackgroundScanModes;
+import com.ruuvi.station.scanning.RuuviRangeNotifier;
 import com.ruuvi.station.util.Constants;
 import com.ruuvi.station.util.Foreground;
 import com.ruuvi.station.util.Preferences;
-import com.ruuvi.station.util.ServiceUtils;
 import com.ruuvi.station.util.Utils;
 
 import org.altbeacon.beacon.BeaconConsumer;

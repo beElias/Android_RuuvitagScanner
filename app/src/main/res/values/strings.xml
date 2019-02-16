@@ -106,7 +106,7 @@
     <string name="pref_title_system_sync_settings">System sync settings</string>
 
     <!-- Example settings for Notifications -->
-    <string name="gateway_notification_title">Scanning..</string>
+    <string name="gateway_notification_title">Gateway mode..</string>
     <string name="scanner_notification_title">Scanning..</string>
     <string name="scanner_notification_message">You can disable background scanning in settings</string>
     <string name="scanner_notification_ticker">Scanner started</string>
@@ -250,6 +250,7 @@
     <string name="settings_background_scan_details">This feature enables background scanning, meaning that your phone will periodically search for beacons, even when you are not using it.</string>
     <string name="settings_background_scan_details_continuous">The app will periodically search for beacons using a service (with notification). Allowing for very frequent and reliable scanning, even when you are not using the it.</string>
     <string name="settings_background_scan_details_lazy">The app will periodically search for beacons in the background using androids job scheduler. It will use less battery than continuous mode but less frequently and less reliably.</string>
+    <string name="settings_background_scan_details_gateway">The app will keep the phone awake and continuously scan for beacons. This mode uses a lot of battery and in only recommended to be used plugged in to a power source.</string>
     <string name="settings_background_scan_battery_save_details">Enabling this feature will let the operating system choose when to do background scanning. It will result in longer battery life but scanning intervals will be very irregular.</string>
     <string name="settings_background_scan_interval_details">Here you can choose at what time interval you want the background scanning to run. For example, by setting it to 1 minute, the background scan will run once every minute. \n\n(N.B. Scanning intervals may not always be 100% accurate, depending on your device and the operating system.) \n\nScanning results are logged every 5 second while the application is active (in foreground), regardless of background scanning interval</string>
     <string name="settings_gateway_details">When you add a URL here, the app will execute an HTTP POST with the linked tags when it does background scanning. \n\nFor more info,&#160;<a href="https://github.com/ruuvi/com.ruuvi.station/wiki">check the documentation</a>.</string>
@@ -286,6 +287,7 @@
     <string name="remove_this_ruuvitag">Remove this RuuviTag</string>
     <string name="continuous_background_scanning_enabled">Continuous background scanning mode is enabled.</string>
     <string name="lazy_background_scanning_enabled">Lazy background scanning mode is enabled.</string>
+    <string name="gateway_mode_enabled">Gateway mode is enabled.</string>
     <string name="no_background_scanning_enabled">No background scanning mode is enabled.</string>
     <string name="more_info">More info</string>
     <string name="voltage">Voltage</string>

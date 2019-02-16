@@ -1,4 +1,4 @@
-package com.ruuvi.station.service;
+package com.ruuvi.station.scanning;
 
 import android.content.Context;
 import android.content.pm.PackageManager;

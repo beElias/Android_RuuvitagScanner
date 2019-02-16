@@ -44,14 +44,11 @@ import com.ruuvi.station.feature.AppSettingsActivity;
 import com.ruuvi.station.feature.WelcomeActivity;
 import com.ruuvi.station.model.RuuviTag;
 import com.ruuvi.station.scanning.BackgroundScanner;
-import com.ruuvi.station.service.AltBeaconScannerForegroundService;
-import com.ruuvi.station.service.AltBeaconScannerService;
-import com.ruuvi.station.service.ScannerService;
+import com.ruuvi.station.service.GatewayService;
 import com.ruuvi.station.util.DataUpdateListener;
 import com.ruuvi.station.scanning.RuuviTagListener;
 import com.ruuvi.station.scanning.RuuviTagScanner;
 import com.ruuvi.station.util.Preferences;
-import com.ruuvi.station.util.ServiceUtils;
 import com.ruuvi.station.util.Utils;
 
 public class MainActivity extends AppCompatActivity implements RuuviTagListener {
@@ -258,7 +255,7 @@ public class MainActivity extends AppCompatActivity implements RuuviTagListener 
 
     @Override
     protected void onStart() {
-        //Intent intent = new Intent(MainActivity.this, ScannerService.class);
+        //Intent intent = new Intent(MainActivity.this, GatewayService.class);
         //startService(intent);
         super.onStart();
     }
@@ -330,7 +327,7 @@ public class MainActivity extends AppCompatActivity implements RuuviTagListener 
             handler.post(updater);
 
             if (isBluetoothEnabled()) {
-                Intent scannerService = new Intent(this, ScannerService.class);
+                Intent scannerService = new Intent(this, GatewayService.class);
                 startService(scannerService);
             }
         }

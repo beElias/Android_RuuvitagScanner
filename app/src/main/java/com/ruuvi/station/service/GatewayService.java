@@ -50,18 +50,17 @@ import com.ruuvi.station.model.RuuviTag_Table;
 import com.ruuvi.station.model.TagSensorReading;
 import com.ruuvi.station.util.AlarmChecker;
 import com.ruuvi.station.util.BackgroundScanModes;
-import com.ruuvi.station.util.Constants;
 import com.ruuvi.station.util.Foreground;
 import com.ruuvi.station.util.Preferences;
 
 
-public class ScannerService extends Service {
-    private static final String TAG = "ScannerService";
+public class GatewayService extends Service {
+    private static final String TAG = "GatewayService";
 
     private boolean scanning;
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothLeScanner scanner;
-    private List<ScanFilter> scanFilters = new ArrayList<ScanFilter>();
+    private List<ScanFilter> scanFilters = new ArrayList<>();
     private ScanSettings scanSettings;
     private Handler handler;
     private boolean isForegroundMode = false;
@@ -80,6 +79,9 @@ public class ScannerService extends Service {
 
         Foreground.init(getApplication());
         Foreground.get().addListener(listener);
+
+        ScanFilter.Builder builder = new ScanFilter.Builder();
+        scanFilters.add(builder.build());
 
         foreground = true;
         scanSettings = new ScanSettings.Builder()
@@ -117,6 +119,7 @@ public class ScannerService extends Service {
         public void run() {
             Log.d(TAG, "Restarting scanner");
             stopScan();
+            TagSensorReading.removeOlderThan(24);
             handler.postDelayed(starter, 1000);
         }
     };
@@ -182,7 +185,7 @@ public class ScannerService extends Service {
         if (scanning || !canScan()) return;
         scanning = true;
         try {
-            scanner.startScan(null, scanSettings, nsCallback);
+            scanner.startScan(scanFilters, scanSettings, nsCallback);
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
             scanning = false;
@@ -239,8 +242,8 @@ public class ScannerService extends Service {
                 }
             }
             foreground = true;
-            if (!isRunning(ScannerService.class))
-                startService(new Intent(ScannerService.this, ScannerService.class));
+            if (!isRunning(GatewayService.class))
+                startService(new Intent(GatewayService.this, GatewayService.class));
         }
 
         public void onBecameBackground() {

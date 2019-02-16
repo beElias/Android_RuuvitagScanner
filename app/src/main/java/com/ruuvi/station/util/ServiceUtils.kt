@@ -6,7 +6,7 @@ import android.content.Intent
 import android.os.Build
 import com.ruuvi.station.service.AltBeaconScannerForegroundService
 import com.ruuvi.station.service.AltBeaconScannerService
-import com.ruuvi.station.service.ScannerService
+import com.ruuvi.station.service.GatewayService
 
 class ServiceUtils(val context: Context) {
     fun stopService(): ServiceUtils {
@@ -24,7 +24,7 @@ class ServiceUtils(val context: Context) {
     }
 
     fun stopGatewayService(): ServiceUtils {
-        val scannerService = Intent(context, ScannerService::class.java)
+        val scannerService = Intent(context, GatewayService::class.java)
         context.stopService(scannerService)
         return this
     }
@@ -47,9 +47,9 @@ class ServiceUtils(val context: Context) {
                 }
             }
         } else if (scanMode == BackgroundScanModes.GATEWAY) {
-            if (!isRunning(ScannerService::class.java)) {
+            if (!isRunning(GatewayService::class.java)) {
                 stopForegroundService()
-                val scannerService = Intent(context, ScannerService::class.java)
+                val scannerService = Intent(context, GatewayService::class.java)
                 if (Build.VERSION.SDK_INT >= 26) {
                     context.startForegroundService(scannerService)
                 } else {

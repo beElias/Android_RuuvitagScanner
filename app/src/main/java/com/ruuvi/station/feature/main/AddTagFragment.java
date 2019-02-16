@@ -17,13 +17,12 @@ import com.ruuvi.station.R;
 import com.ruuvi.station.adapters.AddTagAdapter;
 import com.ruuvi.station.feature.TagSettings;
 import com.ruuvi.station.model.RuuviTag;
-import com.ruuvi.station.service.ScannerService;
+import com.ruuvi.station.service.GatewayService;
 import com.ruuvi.station.util.DataUpdateListener;
 import com.ruuvi.station.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 public class AddTagFragment extends Fragment implements DataUpdateListener {
@@ -85,7 +84,7 @@ public class AddTagFragment extends Fragment implements DataUpdateListener {
                 }
                 tag.defaultBackground = getKindaRandomBackground();
                 tag.update();
-                ScannerService.logTag(tag, getActivity(), true);
+                GatewayService.logTag(tag, getActivity(), true);
                 Intent settingsIntent = new Intent(getActivity(), TagSettings.class);
                 settingsIntent.putExtra(TagSettings.TAG_ID, tag.id);
                 startActivityForResult(settingsIntent, 1);

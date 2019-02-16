@@ -4,11 +4,9 @@ import android.app.Application;
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.raizlabs.android.dbflow.config.FlowManager;
-import com.ruuvi.station.service.AltBeaconScannerForegroundService;
-import com.ruuvi.station.service.RuuviRangeNotifier;
+import com.ruuvi.station.scanning.RuuviRangeNotifier;
 import com.ruuvi.station.util.BackgroundScanModes;
 import com.ruuvi.station.util.Constants;
 import com.ruuvi.station.util.Foreground;
@@ -63,12 +61,14 @@ public class RuuviScannerApplication extends Application implements BeaconConsum
     }
 
     private boolean runForegroundIfEnabled() {
+        ServiceUtils su = new ServiceUtils(getApplicationContext());
         if (prefs.getBackgroundScanMode() == BackgroundScanModes.FOREGROUND || prefs.getBackgroundScanMode() == BackgroundScanModes.GATEWAY) {
-            ServiceUtils su = new ServiceUtils(getApplicationContext());
             disposeStuff();
             su.startForegroundService(prefs.getBackgroundScanMode());
             return true;
         }
+        su.stopForegroundService();
+        su.stopGatewayService();
         return false;
     }
 
@@ -173,12 +173,11 @@ public class RuuviScannerApplication extends Application implements BeaconConsum
                 // background scanning is disabled so all scanning things will be killed
                 stopScanning();
                 su.stopForegroundService();
+                su.stopGatewayService();
             } else if (prefs.getBackgroundScanMode() == BackgroundScanModes.BACKGROUND) {
-                if (su.isRunning(AltBeaconScannerForegroundService.class)) {
-                    su.stopForegroundService();
-                } else {
-                    startBackgroundScanning();
-                }
+                su.stopForegroundService();
+                su.stopGatewayService();
+                startBackgroundScanning();
             } else {
                 disposeStuff();
                 su.startForegroundService(prefs.getBackgroundScanMode());

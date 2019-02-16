@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.ruuvi.station.service.ScannerService.logTag;
+import static com.ruuvi.station.service.GatewayService.logTag;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class ScannerJobService extends JobService {

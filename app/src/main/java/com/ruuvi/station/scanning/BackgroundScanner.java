@@ -33,7 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static android.content.Context.ALARM_SERVICE;
-import static com.ruuvi.station.service.ScannerService.logTag;
+import static com.ruuvi.station.service.GatewayService.logTag;
 
 /**
  * Created by io53 on 30/09/17.

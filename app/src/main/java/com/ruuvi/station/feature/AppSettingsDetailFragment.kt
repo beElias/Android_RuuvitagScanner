@@ -235,6 +235,7 @@ class AppSettingsDetailFragment : Fragment() {
         when (mode) {
             BackgroundScanModes.BACKGROUND -> settings_info.text = getString(R.string.settings_background_scan_details_lazy)
             BackgroundScanModes.FOREGROUND -> settings_info.text = getString(R.string.settings_background_scan_details_continuous)
+            BackgroundScanModes.GATEWAY -> settings_info.text = getString(R.string.settings_background_scan_details_gateway)
             else -> settings_info.text = getString(R.string.settings_background_scan_details)
         }
     }

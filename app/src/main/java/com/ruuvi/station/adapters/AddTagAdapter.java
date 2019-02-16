@@ -3,19 +3,15 @@ package com.ruuvi.station.adapters;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatImageView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.ruuvi.station.R;
-import com.ruuvi.station.feature.main.MainActivity;
 import com.ruuvi.station.model.RuuviTag;
-import com.ruuvi.station.service.ScannerService;
 
 import java.util.List;
 

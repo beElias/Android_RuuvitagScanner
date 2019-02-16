@@ -20,7 +20,7 @@ import com.ruuvi.station.R
 import com.ruuvi.station.adapters.AddTagAdapter
 import com.ruuvi.station.feature.main.MainActivity
 import com.ruuvi.station.model.RuuviTag
-import com.ruuvi.station.service.ScannerService
+import com.ruuvi.station.service.GatewayService
 import com.ruuvi.station.util.Starter
 import com.ruuvi.station.util.Utils
 
@@ -55,7 +55,7 @@ class AddTagActivity : AppCompatActivity() {
             }
             tag.defaultBackground = getKindaRandomBackground()
             tag.update()
-            ScannerService.logTag(tag, this, true)
+            GatewayService.logTag(tag, this, true)
             val settingsIntent = Intent(this, TagSettings::class.java)
             settingsIntent.putExtra(TagSettings.TAG_ID, tag.id)
             startActivityForResult(settingsIntent, 1)

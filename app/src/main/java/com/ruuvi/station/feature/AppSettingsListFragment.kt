@@ -89,6 +89,7 @@ class AppSettingsListFragment : Fragment() {
         when (prefs.backgroundScanMode) {
             BackgroundScanModes.BACKGROUND -> bg_scan_description.text = getString(R.string.lazy_background_scanning_enabled)
             BackgroundScanModes.FOREGROUND -> bg_scan_description.text = getString(R.string.continuous_background_scanning_enabled)
+            BackgroundScanModes.GATEWAY -> bg_scan_description.text = getString(R.string.gateway_mode_enabled)
             else -> bg_scan_description.text = getString(R.string.no_background_scanning_enabled)
         }
     }

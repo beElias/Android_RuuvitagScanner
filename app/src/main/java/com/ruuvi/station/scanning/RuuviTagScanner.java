@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
@@ -13,6 +14,9 @@ import android.util.Log;
 import com.ruuvi.station.model.LeScanResult;
 import com.ruuvi.station.model.RuuviTag;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RuuviTagScanner {
     private static final String TAG = "RuuviTagScanner";
     private RuuviTagListener listener;
@@ -20,10 +24,14 @@ public class RuuviTagScanner {
     private BluetoothAdapter bluetoothAdapter;
     private ScanSettings scanSettings;
     private BluetoothLeScanner scanner;
+    private List<ScanFilter> scanFilters = new ArrayList<>();
     private boolean scanning = false;
 
     public RuuviTagScanner(RuuviTagListener listener, Context context) {
         this.listener = listener;
+
+        ScanFilter.Builder builder = new ScanFilter.Builder();
+        scanFilters.add(builder.build());
 
         scanSettings = new ScanSettings.Builder()
                 .setReportDelay(0)
@@ -39,7 +47,7 @@ public class RuuviTagScanner {
     public void start() {
         if (scanning || !canScan()) return;
         scanning = true;
-        scanner.startScan(null, scanSettings, nsCallback);
+        scanner.startScan(scanFilters, scanSettings, nsCallback);
     }
 
     public void stop() {

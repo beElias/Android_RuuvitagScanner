@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
@@ -40,12 +41,12 @@ public class ScannerJobService extends JobService {
     private List<LeScanResult> scanResults;
     //private PowerManager.WakeLock wakeLock;
 
-
     private BluetoothAdapter bluetoothAdapter;
     private ScanSettings scanSettings;
     private BluetoothLeScanner scanner;
     private Location tagLocation;
     private JobParameters jobParameters;
+    private List<ScanFilter> scanFilters = new ArrayList<>();
 
     @Override
     public boolean onStartJob(JobParameters jobParameters) {
@@ -61,6 +62,9 @@ public class ScannerJobService extends JobService {
                 }
             });
         }
+
+        ScanFilter.Builder builder = new ScanFilter.Builder();
+        scanFilters.add(builder.build());
 
         scanSettings = new ScanSettings.Builder()
                 .setReportDelay(0)
@@ -83,12 +87,12 @@ public class ScannerJobService extends JobService {
             public void run() {
                 scanner.stopScan(nsCallback);
                 processFoundDevices(getApplicationContext());
-                scanResults = new ArrayList<LeScanResult>();
+                scanResults = new ArrayList<>();
             }
         }, SCAN_TIME_MS);
 
         try {
-            scanner.startScan(null, scanSettings, nsCallback);
+            scanner.startScan(scanFilters, scanSettings, nsCallback);
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         }

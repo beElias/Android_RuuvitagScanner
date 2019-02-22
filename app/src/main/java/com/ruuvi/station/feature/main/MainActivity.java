@@ -342,7 +342,7 @@ public class MainActivity extends AppCompatActivity implements RuuviTagListener 
     @Override
     protected void onPause() {
         super.onPause();
-        if (scanner != null) scanner.stop();
+        if (scanner != null) scanner.Stop();
         handler.removeCallbacks(updater);
         for (RuuviTag tag: myRuuviTags) {
             tag.update();

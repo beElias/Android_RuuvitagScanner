@@ -33,7 +33,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import static android.content.Context.ALARM_SERVICE;
-import static com.ruuvi.station.service.GatewayService.logTag;
 
 /**
  * Created by io53 on 30/09/17.
@@ -50,6 +49,7 @@ public class BackgroundScanner extends BroadcastReceiver {
     private ScanSettings scanSettings;
     private BluetoothLeScanner scanner;
     private Location tagLocation;
+    private TagResultHandler resultHandler;
 
     @Override
     public void onReceive(final Context context, Intent intent) {
@@ -71,6 +71,8 @@ public class BackgroundScanner extends BroadcastReceiver {
                 }
             });
         }
+
+        resultHandler = new TagResultHandler(context);
 
         scanSettings = new ScanSettings.Builder()
                 .setReportDelay(0)
@@ -184,7 +186,7 @@ public class BackgroundScanner extends BroadcastReceiver {
         int index = checkForSameTag(tags, tag);
         if (index == -1) {
             tags.add(tag);
-            logTag(tag, context, true);
+            resultHandler.Save(tag, tagLocation);
         }
     }
 

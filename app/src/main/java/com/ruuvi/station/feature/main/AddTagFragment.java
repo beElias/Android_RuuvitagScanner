@@ -17,6 +17,7 @@ import com.ruuvi.station.R;
 import com.ruuvi.station.adapters.AddTagAdapter;
 import com.ruuvi.station.feature.TagSettings;
 import com.ruuvi.station.model.RuuviTag;
+import com.ruuvi.station.model.TagSensorReading;
 import com.ruuvi.station.service.GatewayService;
 import com.ruuvi.station.util.DataUpdateListener;
 import com.ruuvi.station.util.Utils;
@@ -84,7 +85,8 @@ public class AddTagFragment extends Fragment implements DataUpdateListener {
                 }
                 tag.defaultBackground = getKindaRandomBackground();
                 tag.update();
-                GatewayService.logTag(tag, getActivity(), true);
+                TagSensorReading reading = new TagSensorReading(tag);
+                reading.save();
                 Intent settingsIntent = new Intent(getActivity(), TagSettings.class);
                 settingsIntent.putExtra(TagSettings.TAG_ID, tag.id);
                 startActivityForResult(settingsIntent, 1);

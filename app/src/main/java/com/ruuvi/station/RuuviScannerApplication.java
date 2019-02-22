@@ -1,6 +1,9 @@
 package com.ruuvi.station;
 
 import android.app.Application;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
@@ -10,6 +13,7 @@ import com.raizlabs.android.dbflow.config.FlowManager;
 import com.ruuvi.station.scanning.AltBeaconScanner;
 import com.ruuvi.station.scanning.IScanner;
 import com.ruuvi.station.scanning.RuuviTagScanner;
+import com.ruuvi.station.service.ScannerJobService;
 import com.ruuvi.station.util.BackgroundScanModes;
 import com.ruuvi.station.util.Foreground;
 import com.ruuvi.station.util.Preferences;
@@ -42,6 +46,11 @@ public class RuuviScannerApplication extends Application {
         running = false;
         scanner.Stop();
         scanner.Cleanup();
+    }
+
+    private void stopBackgroundScanning() {
+        JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
+        if (scheduler != null) scheduler.cancelAll();
     }
 
     private boolean runForegroundIfEnabled() {
@@ -83,7 +92,18 @@ public class RuuviScannerApplication extends Application {
             Log.d(TAG, "Background scanning is not enabled, ignoring");
             return;
         }
-        //scanner.StartBackground();
+        if (prefs.getUseAltBeacon()) {
+            ((AltBeaconScanner)scanner).StartBackground();
+        } else {
+            ComponentName componentName = new ComponentName(this, ScannerJobService.class);
+            JobInfo info = new JobInfo.Builder(1, componentName)
+                    .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED) // change this later to wifi
+                    .setPersisted(true)
+                    .setPeriodic(20 * 60 * 1000)
+                    .build();
+            JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
+            if (scheduler != null) scheduler.schedule(info);
+        }
         //if (medic == null) medic = setupMedic(getApplicationContext());
     }
 
@@ -138,11 +158,14 @@ public class RuuviScannerApplication extends Application {
                 stopScanning();
                 su.stopForegroundService();
                 su.stopGatewayService();
+                stopBackgroundScanning();
             } else if (prefs.getBackgroundScanMode() == BackgroundScanModes.BACKGROUND) {
                 su.stopForegroundService();
                 su.stopGatewayService();
+                stopScanning();
                 startBackgroundScanning();
             } else {
+                stopBackgroundScanning();
                 disposeStuff();
                 su.startForegroundService(prefs.getBackgroundScanMode());
             }

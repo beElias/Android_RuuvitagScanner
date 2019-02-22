@@ -46,6 +46,12 @@ class AppSettingsListFragment : Fragment() {
             prefs.dashboardEnabled = isChecked
         }
 
+        val scanSwitch = view.findViewById<SwitchCompat>(R.id.scan_method_switch)
+        scanSwitch.isChecked = prefs.useAltBeacon
+        scanSwitch.setOnCheckedChangeListener{ _, isChecked ->
+            prefs.useAltBeacon = isChecked
+        }
+
         updateView()
         // updates the scanning notification notification if the service is running
         ServiceUtils(context!!).forceStartIfRunningForegroundService()

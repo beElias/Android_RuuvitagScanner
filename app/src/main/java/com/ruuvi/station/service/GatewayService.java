@@ -295,9 +295,7 @@ public class GatewayService extends Service {
             }
         }
 
-        List<RuuviTag> tags = new ArrayList<>();
-        tags.add(ruuviTag);
-        Http.post(tags, null, context);
+        Http.post(ruuviTag, null, context);
 
         lastLogged.put(ruuviTag.id, new Date().getTime());
         TagSensorReading reading = new TagSensorReading(ruuviTag);

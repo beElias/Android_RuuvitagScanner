@@ -13,23 +13,37 @@ import android.util.Log;
 
 import com.ruuvi.station.model.LeScanResult;
 import com.ruuvi.station.model.RuuviTag;
+import com.ruuvi.station.model.TagSensorReading;
+import com.ruuvi.station.service.GatewayService;
+import com.ruuvi.station.util.AlarmChecker;
+import com.ruuvi.station.util.Constants;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class RuuviTagScanner {
+public class RuuviTagScanner implements IScanner {
     private static final String TAG = "RuuviTagScanner";
     private RuuviTagListener listener;
 
+    private Context context;
     private BluetoothAdapter bluetoothAdapter;
     private ScanSettings scanSettings;
     private BluetoothLeScanner scanner;
     private List<ScanFilter> scanFilters = new ArrayList<>();
+    private TagResultHandler resultHandler;
     private boolean scanning = false;
 
-    public RuuviTagScanner(RuuviTagListener listener, Context context) {
-        this.listener = listener;
+    @Override
+    public void Init(@NotNull Context context) {
+        this.context = context;
 
+        resultHandler = new TagResultHandler(context);
         ScanFilter.Builder builder = new ScanFilter.Builder();
         scanFilters.add(builder.build());
 
@@ -41,19 +55,43 @@ public class RuuviTagScanner {
         final BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
         scanner = bluetoothAdapter.getBluetoothLeScanner();
-
     }
 
-    public void start() {
+    public void setListener(RuuviTagListener listener) {
+        this.listener = listener;
+    }
+
+    @Override
+    public void Start() {
+
         if (scanning || !canScan()) return;
         scanning = true;
         scanner.startScan(scanFilters, scanSettings, nsCallback);
     }
 
-    public void stop() {
+    @Override
+    public void Stop() {
+
         if (!canScan()) return;
         scanning = false;
         scanner.stopScan(nsCallback);
+    }
+
+    @Override
+    public void Cleanup() {
+
+    }
+    /*
+    public RuuviTagScanner(RuuviTagListener listener, Context context) {
+
+
+    }
+    */
+
+    public void start() {
+    }
+
+    public void stop() {
     }
 
     private ScanCallback nsCallback = new ScanCallback() {
@@ -72,7 +110,10 @@ public class RuuviTagScanner {
 
         Log.d(TAG, "found: " + device.getAddress());
         RuuviTag tag = dev.parse();
-        if (tag != null) listener.tagFound(tag);
+        if (tag != null) {
+            if (listener != null) listener.tagFound(tag);
+            resultHandler.Save(tag, null);
+        }
     }
 
     private boolean canScan() {

@@ -15,10 +15,17 @@ import com.ruuvi.station.model.ScanEventSingle;
 import com.ruuvi.station.model.ScanLocation;
 import com.ruuvi.station.util.Preferences;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Http {
     private static final String TAG = "Http";
+
+    public static void post(RuuviTag tag, Location location, Context context){
+        List<RuuviTag> tags = new ArrayList<>();
+        tags.add(tag);
+        Http.post(tags, location, context);
+    }
 
     public static void post(List<RuuviTag> tags, Location location, Context context){
         ScanLocation scanLocation = null;

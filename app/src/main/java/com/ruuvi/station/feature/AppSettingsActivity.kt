@@ -8,6 +8,7 @@ import android.view.MenuItem
 import android.view.View
 import com.ruuvi.station.R
 import android.support.v7.widget.SwitchCompat
+import com.ruuvi.station.RuuviScannerApplication
 import com.ruuvi.station.util.Preferences
 
 import kotlinx.android.synthetic.main.activity_app_settings.*
@@ -51,6 +52,7 @@ class AppSettingsActivity : AppCompatActivity() {
         if (showingFragmentTitle != R.string.title_activity_app_settings) {
             openFragment(R.string.title_activity_app_settings)
         } else {
+            (application as RuuviScannerApplication).startForegroundScanning()
             finish()
         }
     }

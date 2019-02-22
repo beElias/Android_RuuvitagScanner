@@ -269,6 +269,8 @@
     <string name="mac">Mac</string>
     <string name="dashboard_pref">Dashboard</string>
     <string name="dashboard_pref_sub">Use dashboard view to see multiple sensors at a glance. Restart the app after enabled.</string>
+    <string name="altbeacon_scan_pref">Use altbeacon scanning</string>
+    <string name="altbeacon_scan_pref_sub">If this is checked the application will use AltBeacon (bluetooth LE library) to scan. Turn this off if you wish to use androids native scanning.</string>
     <string name="camera">Camera</string>
     <string name="gallery">Gallery</string>
     <string name="test_gateway">Test gateway</string>

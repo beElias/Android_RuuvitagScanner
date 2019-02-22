@@ -4,60 +4,44 @@ import android.app.Application;
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.raizlabs.android.dbflow.config.FlowManager;
-import com.ruuvi.station.scanning.RuuviRangeNotifier;
+import com.ruuvi.station.scanning.AltBeaconScanner;
+import com.ruuvi.station.scanning.IScanner;
+import com.ruuvi.station.scanning.RuuviTagScanner;
 import com.ruuvi.station.util.BackgroundScanModes;
-import com.ruuvi.station.util.Constants;
 import com.ruuvi.station.util.Foreground;
 import com.ruuvi.station.util.Preferences;
 import com.ruuvi.station.util.ServiceUtils;
-import com.ruuvi.station.util.Utils;
 
-import org.altbeacon.beacon.BeaconConsumer;
-import org.altbeacon.beacon.BeaconManager;
-import org.altbeacon.beacon.BeaconParser;
-import org.altbeacon.beacon.Region;
 import org.altbeacon.bluetooth.BluetoothMedic;
 
 /**
  * Created by io53 on 10/09/17.
  */
 
-public class RuuviScannerApplication extends Application implements BeaconConsumer {
+public class RuuviScannerApplication extends Application {
     private static final String TAG = "RuuviScannerApplication";
-    private BeaconManager beaconManager;
-    private Region region;
     boolean running = false;
     private Preferences prefs;
-    private RuuviRangeNotifier ruuviRangeNotifier;
     private boolean foreground = false;
     BluetoothMedic medic;
     RuuviScannerApplication me;
+    IScanner scanner;
 
     public void stopScanning() {
         Log.d(TAG, "Stopping scanning");
         running = false;
-        try {
-            beaconManager.stopRangingBeaconsInRegion(region);
-        } catch (Exception e) {
-            Log.d(TAG, "Could not remove ranging region");
-        }
+        scanner.Stop();
     }
 
     public void disposeStuff() {
         Log.d(TAG, "Stopping scanning");
         medic = null;
-        if (beaconManager == null) return;
         running = false;
-        beaconManager.removeRangeNotifier(ruuviRangeNotifier);
-        try {
-            beaconManager.stopRangingBeaconsInRegion(region);
-        } catch (Exception e) {
-            Log.d(TAG, "Could not remove ranging region");
-        }
-        beaconManager.unbind(this);
-        beaconManager = null;
+        scanner.Stop();
+        scanner.Cleanup();
     }
 
     private boolean runForegroundIfEnabled() {
@@ -74,13 +58,22 @@ public class RuuviScannerApplication extends Application implements BeaconConsum
 
     public void startForegroundScanning() {
         if (runForegroundIfEnabled()) return;
+
+        boolean altBeaconMode = prefs.getUseAltBeacon();
+        if (scanner instanceof AltBeaconScanner && !altBeaconMode || scanner instanceof RuuviTagScanner && altBeaconMode) {
+            scanner.Stop();
+            scanner.Cleanup();
+            if (altBeaconMode) scanner = new AltBeaconScanner();
+            else scanner = new RuuviTagScanner();
+            scanner.Init(me);
+            foreground = false;
+        }
+
         if (foreground) return;
         foreground = true;
-        Utils.removeStateFile(getApplicationContext());
-        Log.d(TAG, "Starting foreground scanning");
-        bindBeaconManager(this, getApplicationContext());
-        beaconManager.setBackgroundMode(false);
-        if (ruuviRangeNotifier != null) ruuviRangeNotifier.gatewayOn = false;
+
+        Toast.makeText(me, "AltBeacon scanner = " + (altBeaconMode ? "YES" : "NO"), Toast.LENGTH_SHORT).show();
+        scanner.Start();
     }
 
     public void startBackgroundScanning() {
@@ -90,21 +83,8 @@ public class RuuviScannerApplication extends Application implements BeaconConsum
             Log.d(TAG, "Background scanning is not enabled, ignoring");
             return;
         }
-        bindBeaconManager(me, getApplicationContext());
-        int scanInterval = new Preferences(getApplicationContext()).getBackgroundScanInterval() * 1000;
-        int minInterval = 15 * 60 * 1000;
-        if (scanInterval < minInterval) scanInterval = minInterval;
-        if (scanInterval != beaconManager.getBackgroundBetweenScanPeriod()) {
-            beaconManager.setBackgroundBetweenScanPeriod(scanInterval);
-            try {
-                beaconManager.updateScanPeriods();
-            } catch (Exception e) {
-                Log.e(TAG, "Could not update scan intervals");
-            }
-        }
-        beaconManager.setBackgroundMode(true);
-        if (ruuviRangeNotifier != null) ruuviRangeNotifier.gatewayOn = true;
-        if (medic == null) medic = setupMedic(getApplicationContext());
+        //scanner.StartBackground();
+        //if (medic == null) medic = setupMedic(getApplicationContext());
     }
 
     public static BluetoothMedic setupMedic(Context context) {
@@ -114,25 +94,6 @@ public class RuuviScannerApplication extends Application implements BeaconConsum
         return medic;
     }
 
-    private void bindBeaconManager(BeaconConsumer consumer, Context context) {
-        if (beaconManager == null) {
-            beaconManager = BeaconManager.getInstanceForApplication(context.getApplicationContext());
-            beaconManager.getBeaconParsers().clear();
-            beaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout(Constants.RuuviV2and4_LAYOUT));
-            beaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout(Constants.RuuviV3_LAYOUT));
-            beaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout(Constants.RuuviV5_LAYOUT));
-            beaconManager.setBackgroundScanPeriod(5000);
-            beaconManager.bind(consumer);
-        } else if (!running) {
-            running = true;
-            try {
-                beaconManager.startRangingBeaconsInRegion(region);
-            } catch (Exception e) {
-                Log.d(TAG, "Could not start ranging again");
-            }
-        }
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -140,7 +101,12 @@ public class RuuviScannerApplication extends Application implements BeaconConsum
         Log.d(TAG, "App class onCreate");
         FlowManager.init(getApplicationContext());
         prefs = new Preferences(getApplicationContext());
-        ruuviRangeNotifier = new RuuviRangeNotifier(getApplicationContext(), "RuuviScannerApplication");
+        if (prefs.getUseAltBeacon()) {
+            scanner = new AltBeaconScanner();
+        } else {
+            scanner = new RuuviTagScanner();
+        }
+        scanner.Init(getApplicationContext());
         Foreground.init(this);
         Foreground.get().addListener(listener);
         new Handler().postDelayed(new Runnable() {
@@ -155,14 +121,12 @@ public class RuuviScannerApplication extends Application implements BeaconConsum
                 }
             }
         }, 5000);
-        region = new Region("com.ruuvi.station.leRegion", null, null, null);
     }
 
     Foreground.Listener listener = new Foreground.Listener() {
         public void onBecameForeground() {
             Log.d(TAG, "onBecameForeground");
             startForegroundScanning();
-            if (ruuviRangeNotifier != null) ruuviRangeNotifier.gatewayOn = false;
         }
 
         public void onBecameBackground() {
@@ -182,24 +146,7 @@ public class RuuviScannerApplication extends Application implements BeaconConsum
                 disposeStuff();
                 su.startForegroundService(prefs.getBackgroundScanMode());
             }
-            if (ruuviRangeNotifier != null) ruuviRangeNotifier.gatewayOn = true;
+            //if (ruuviRangeNotifier != null) ruuviRangeNotifier.gatewayOn = true;
         }
     };
-
-    @Override
-    public void onBeaconServiceConnect() {
-        Log.d(TAG, "onBeaconServiceConnect");
-        //Toast.makeText(getApplicationContext(), "Started scanning (Application)", Toast.LENGTH_SHORT).show();
-        ruuviRangeNotifier.gatewayOn = !foreground;
-        if (!beaconManager.getRangingNotifiers().contains(ruuviRangeNotifier)) {
-            beaconManager.addRangeNotifier(ruuviRangeNotifier);
-        }
-        running = true;
-        try {
-            beaconManager.startRangingBeaconsInRegion(region);
-        } catch (Exception e) {
-            Log.e(TAG, "Could not start ranging");
-        }
-
-    }
 }

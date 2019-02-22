@@ -81,4 +81,10 @@ class Preferences(val context: Context) {
         set(enabled) {
             pref.edit().putBoolean("pref_bgscan_battery_saving", enabled).apply()
         }
+
+    var useAltBeacon: Boolean
+        get() = pref.getBoolean("pref_use_altbeacon", true)
+        set(enabled) {
+            pref.edit().putBoolean("pref_use_altbeacon", enabled).apply()
+        }
 }

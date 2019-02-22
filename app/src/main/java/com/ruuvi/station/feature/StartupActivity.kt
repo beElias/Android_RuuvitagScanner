@@ -19,6 +19,8 @@ class StartupActivity : AppCompatActivity() {
         DeviceIdentifier.id(applicationContext)
         val prefs = Preferences(this)
 
+        (applicationContext as RuuviScannerApplication).startForegroundScanning()
+
         if (prefs.isFirstStart) {
             val intent = Intent(this, WelcomeActivity::class.java)
             startActivity(intent)

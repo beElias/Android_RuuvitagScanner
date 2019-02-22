@@ -465,7 +465,7 @@ public class MainActivity extends AppCompatActivity implements RuuviTagListener 
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode == RESULT_OK) {
             if (requestCode == REQUEST_ENABLE_BT) {
-                scanner = new RuuviTagScanner(MainActivity.this, getApplicationContext());
+                //scanner = new RuuviTagScanner(MainActivity.this, getApplicationContext());
             }
         } else {
             if (requestCode == FROM_WELCOME) {
@@ -476,7 +476,7 @@ public class MainActivity extends AppCompatActivity implements RuuviTagListener 
 
     private void getThingsStarted(boolean goToAddTags) {
         if (isBluetoothEnabled()) {
-            scanner = new RuuviTagScanner(this, getApplicationContext());
+            //scanner = new RuuviTagScanner(this, getApplicationContext());
         } else {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);

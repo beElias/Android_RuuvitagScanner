@@ -60,15 +60,14 @@ public class RuuviTagScanner implements IScanner {
 
     @Override
     public void Start() {
-        if (scanning || !canScan()) return;
+        Log.d(TAG, "Start scanning");
         scanning = true;
         scanner.startScan(Utils.getScanFilters(), scanSettings, nsCallback);
     }
 
     @Override
     public void Stop() {
-
-        if (!canScan()) return;
+        Log.d(TAG, "Stop scanning");
         scanning = false;
         scanner.stopScan(nsCallback);
     }
@@ -97,9 +96,5 @@ public class RuuviTagScanner implements IScanner {
             if (listener != null) listener.tagFound(tag);
             resultHandler.Save(tag, location);
         }
-    }
-
-    private boolean canScan() {
-        return scanner != null;
     }
 }

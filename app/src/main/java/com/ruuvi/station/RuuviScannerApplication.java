@@ -95,14 +95,19 @@ public class RuuviScannerApplication extends Application {
         if (prefs.getUseAltBeacon()) {
             ((AltBeaconScanner)scanner).StartBackground();
         } else {
+            int scanInterval = new Preferences(getApplicationContext()).getBackgroundScanInterval() * 1000;
+            int minInterval = 15 * 60 * 1000;
+            if (scanInterval < minInterval) scanInterval = minInterval;
             ComponentName componentName = new ComponentName(this, ScannerJobService.class);
             JobInfo info = new JobInfo.Builder(1, componentName)
-                    .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED) // change this later to wifi
                     .setPersisted(true)
-                    .setPeriodic(20 * 60 * 1000)
+                    .setPeriodic(scanInterval)
                     .build();
             JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
-            if (scheduler != null) scheduler.schedule(info);
+            if (scheduler != null) {
+                scheduler.schedule(info);
+                Log.d(TAG, "Scheduling bg scan job");
+            }
         }
         //if (medic == null) medic = setupMedic(getApplicationContext());
     }

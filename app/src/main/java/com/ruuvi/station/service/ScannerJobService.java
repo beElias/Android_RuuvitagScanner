@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
@@ -21,16 +22,15 @@ public class ScannerJobService extends JobService {
     private static final String TAG = "ScannerJobService";
     public static final int REQUEST_CODE = 9001;
     private static final int SCAN_TIME_MS = 5000;
+    private PowerManager.WakeLock wakeLock;
 
     //private PowerManager.WakeLock wakeLock;
 
-    private JobParameters jobParameters;
     private RuuviTagScanner scanner;
 
     @Override
-    public boolean onStartJob(JobParameters jobParameters) {
+    public boolean onStartJob(final JobParameters jobParameters) {
         Log.d(TAG, "Woke up");
-        this.jobParameters = jobParameters;
 
         scanner = new RuuviTagScanner();
         scanner.Init(getApplicationContext());
@@ -51,6 +51,7 @@ public class ScannerJobService extends JobService {
             @Override
             public void run() {
                 scanner.Stop();
+                jobFinished(jobParameters, true);
             }
         }, SCAN_TIME_MS);
 
@@ -59,6 +60,8 @@ public class ScannerJobService extends JobService {
 
     @Override
     public boolean onStopJob(JobParameters jobParameters) {
-        return false;
+        Log.d(TAG, "onStopJob");
+        scanner.Stop();
+        return true;
     }
 }

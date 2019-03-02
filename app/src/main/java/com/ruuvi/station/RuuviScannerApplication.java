@@ -13,6 +13,7 @@ import com.raizlabs.android.dbflow.config.FlowManager;
 import com.ruuvi.station.scanning.AltBeaconScanner;
 import com.ruuvi.station.scanning.IScanner;
 import com.ruuvi.station.scanning.RuuviTagScanner;
+import com.ruuvi.station.scanning.ScanWork;
 import com.ruuvi.station.service.ScannerJobService;
 import com.ruuvi.station.util.BackgroundScanModes;
 import com.ruuvi.station.util.Foreground;
@@ -20,6 +21,11 @@ import com.ruuvi.station.util.Preferences;
 import com.ruuvi.station.util.ServiceUtils;
 
 import org.altbeacon.bluetooth.BluetoothMedic;
+
+import java.util.concurrent.TimeUnit;
+
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 /**
  * Created by io53 on 10/09/17.
@@ -49,8 +55,13 @@ public class RuuviScannerApplication extends Application {
     }
 
     private void stopBackgroundScanning() {
-        JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
-        if (scheduler != null) scheduler.cancelAll();
+        boolean altBeaconMode = prefs.getUseAltBeacon();
+        if (altBeaconMode) {
+            scanner.Stop();
+            scanner.Cleanup();
+        } else {
+            WorkManager.getInstance().cancelAllWork();
+        }
     }
 
     private boolean runForegroundIfEnabled() {
@@ -98,16 +109,10 @@ public class RuuviScannerApplication extends Application {
             int scanInterval = new Preferences(getApplicationContext()).getBackgroundScanInterval() * 1000;
             int minInterval = 15 * 60 * 1000;
             if (scanInterval < minInterval) scanInterval = minInterval;
-            ComponentName componentName = new ComponentName(this, ScannerJobService.class);
-            JobInfo info = new JobInfo.Builder(1, componentName)
-                    .setPersisted(true)
-                    .setPeriodic(scanInterval)
-                    .build();
-            JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
-            if (scheduler != null) {
-                scheduler.schedule(info);
-                Log.d(TAG, "Scheduling bg scan job");
-            }
+
+            PeriodicWorkRequest.Builder builder =
+                    new PeriodicWorkRequest.Builder(ScanWork.class, scanInterval, TimeUnit.MILLISECONDS);
+            WorkManager.getInstance().enqueue(builder.build());
         }
         //if (medic == null) medic = setupMedic(getApplicationContext());
     }

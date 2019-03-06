@@ -19,6 +19,9 @@ import android.util.Log;
 import com.ruuvi.station.R;
 import com.ruuvi.station.model.RuuviTag;
 
+import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.BeaconParser;
+
 import java.io.File;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -171,5 +174,19 @@ public class Utils {
         filters.add(ruuviFilter);
         filters.add(eddystoneFilter);
         return filters;
+    }
+
+    public static void setAltBeaconParsers(BeaconManager beaconManager) {
+        beaconManager.getBeaconParsers().clear();
+
+        beaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout(Constants.RuuviV2and4_LAYOUT));
+
+        BeaconParser v3Parser = new BeaconParser().setBeaconLayout(Constants.RuuviV3_LAYOUT);
+        v3Parser.setHardwareAssistManufacturerCodes(new int[]{1177});
+        beaconManager.getBeaconParsers().add(v3Parser);
+
+        BeaconParser v5Parser = new BeaconParser().setBeaconLayout(Constants.RuuviV5_LAYOUT);
+        v5Parser.setHardwareAssistManufacturerCodes(new int[]{1177});
+        beaconManager.getBeaconParsers().add(v5Parser);
     }
 }

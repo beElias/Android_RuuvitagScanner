@@ -55,9 +55,7 @@ public class AltBeaconScannerForegroundService extends Service implements Beacon
         Log.d(TAG, "Starting foreground service");
         beaconManager = BeaconManager.getInstanceForApplication(getApplicationContext());
         beaconManager.getBeaconParsers().clear();
-        beaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout(Constants.RuuviV2and4_LAYOUT));
-        beaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout(Constants.RuuviV3_LAYOUT));
-        beaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout(Constants.RuuviV5_LAYOUT));
+        Utils.setAltBeaconParsers(beaconManager);
         beaconManager.setBackgroundScanPeriod(5000);
 
         Foreground.init(getApplication());

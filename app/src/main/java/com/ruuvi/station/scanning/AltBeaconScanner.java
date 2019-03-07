@@ -59,7 +59,7 @@ public class AltBeaconScanner implements BeaconConsumer, IScanner {
         Log.d(TAG, "Stopping scanning");
         running = false;
         try {
-            beaconManager.stopRangingBeaconsInRegion(region);
+            if (beaconManager != null) beaconManager.stopRangingBeaconsInRegion(region);
         } catch (Exception e) {
             Log.d(TAG, "Could not remove ranging region");
         }

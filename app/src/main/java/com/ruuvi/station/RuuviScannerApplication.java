@@ -56,13 +56,9 @@ public class RuuviScannerApplication extends Application {
     }
 
     private void stopBackgroundScanning() {
-        boolean altBeaconMode = prefs.getUseAltBeacon();
-        if (altBeaconMode) {
-            scanner.Stop();
-            scanner.Cleanup();
-        } else {
-            WorkManager.getInstance().cancelAllWorkByTag("SCAN_JOB");
-        }
+        scanner.Stop();
+        scanner.Cleanup();
+        WorkManager.getInstance().cancelAllWorkByTag("SCAN_JOB");
     }
 
     private boolean runForegroundIfEnabled() {

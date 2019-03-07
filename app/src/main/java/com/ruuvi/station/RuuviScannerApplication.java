@@ -24,6 +24,7 @@ import org.altbeacon.bluetooth.BluetoothMedic;
 
 import java.util.concurrent.TimeUnit;
 
+import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
@@ -60,7 +61,7 @@ public class RuuviScannerApplication extends Application {
             scanner.Stop();
             scanner.Cleanup();
         } else {
-            WorkManager.getInstance().cancelAllWork();
+            WorkManager.getInstance().cancelAllWorkByTag("SCAN_JOB");
         }
     }
 
@@ -111,8 +112,9 @@ public class RuuviScannerApplication extends Application {
             if (scanInterval < minInterval) scanInterval = minInterval;
 
             PeriodicWorkRequest.Builder builder =
-                    new PeriodicWorkRequest.Builder(ScanWork.class, scanInterval, TimeUnit.MILLISECONDS);
-            WorkManager.getInstance().enqueue(builder.build());
+                    new PeriodicWorkRequest.Builder(ScanWork.class, scanInterval, TimeUnit.MILLISECONDS)
+                            .addTag("SCAN_JOB");
+            WorkManager.getInstance().enqueueUniquePeriodicWork("scanJob", ExistingPeriodicWorkPolicy.REPLACE, builder.build());
         }
         //if (medic == null) medic = setupMedic(getApplicationContext());
     }

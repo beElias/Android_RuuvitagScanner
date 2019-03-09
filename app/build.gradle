@@ -63,7 +63,7 @@ dependencies {
     implementation "com.github.Raizlabs.DBFlow:dbflow-core:${dbflow_version}"
     implementation "com.github.Raizlabs.DBFlow:dbflow:${dbflow_version}"
 
-    implementation 'org.altbeacon:android-beacon-library:2.14'
+    implementation 'org.altbeacon:android-beacon-library:2.15.4'
     implementation "android.arch.work:work-runtime-ktx:$work_version"
 
 

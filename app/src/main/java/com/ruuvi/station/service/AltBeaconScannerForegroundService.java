@@ -30,6 +30,8 @@ import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.bluetooth.BluetoothMedic;
 
+import java.util.concurrent.TimeUnit;
+
 
 public class AltBeaconScannerForegroundService extends Service implements BeaconConsumer {
     private static final String TAG = "AScannerFgService";
@@ -149,10 +151,10 @@ public class AltBeaconScannerForegroundService extends Service implements Beacon
     }
 
     private void setBackground() {
-        int scanInterval = new Preferences(getApplicationContext()).getBackgroundScanInterval() * 1000;
+        int scanInterval = new Preferences(getApplicationContext()).getBackgroundScanInterval();
         if (scanInterval != beaconManager.getBackgroundBetweenScanPeriod()) {
             updateNotification();
-            beaconManager.setBackgroundBetweenScanPeriod(scanInterval);
+            beaconManager.setBackgroundBetweenScanPeriod(TimeUnit.SECONDS.toMillis(scanInterval));
             try {
                 beaconManager.updateScanPeriods();
             } catch (Exception e) {

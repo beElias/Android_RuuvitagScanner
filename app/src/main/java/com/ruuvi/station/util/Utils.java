@@ -182,11 +182,11 @@ public class Utils {
         beaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout(Constants.RuuviV2and4_LAYOUT));
 
         BeaconParser v3Parser = new BeaconParser().setBeaconLayout(Constants.RuuviV3_LAYOUT);
-        v3Parser.setHardwareAssistManufacturerCodes(new int[]{1177});
+        v3Parser.setHardwareAssistManufacturerCodes(new int[]{0x0499});
         beaconManager.getBeaconParsers().add(v3Parser);
 
         BeaconParser v5Parser = new BeaconParser().setBeaconLayout(Constants.RuuviV5_LAYOUT);
-        v5Parser.setHardwareAssistManufacturerCodes(new int[]{1177});
+        v5Parser.setHardwareAssistManufacturerCodes(new int[]{0x0499});
         beaconManager.getBeaconParsers().add(v5Parser);
     }
 }

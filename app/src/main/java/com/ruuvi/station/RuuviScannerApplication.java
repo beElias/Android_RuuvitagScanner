@@ -1,9 +1,6 @@
 package com.ruuvi.station;
 
 import android.app.Application;
-import android.app.job.JobInfo;
-import android.app.job.JobScheduler;
-import android.content.ComponentName;
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
@@ -14,7 +11,6 @@ import com.ruuvi.station.scanning.AltBeaconScanner;
 import com.ruuvi.station.scanning.IScanner;
 import com.ruuvi.station.scanning.RuuviTagScanner;
 import com.ruuvi.station.scanning.ScanWork;
-import com.ruuvi.station.service.ScannerJobService;
 import com.ruuvi.station.util.BackgroundScanModes;
 import com.ruuvi.station.util.Foreground;
 import com.ruuvi.station.util.Preferences;
@@ -48,7 +44,7 @@ public class RuuviScannerApplication extends Application {
     }
 
     public void disposeStuff() {
-        Log.d(TAG, "Stopping scanning");
+        Log.d(TAG, "Stopping scanning and cleaning up");
         medic = null;
         running = false;
         scanner.Stop();
@@ -56,9 +52,9 @@ public class RuuviScannerApplication extends Application {
     }
 
     private void stopBackgroundScanning() {
+        Log.d(TAG, "Stopping background scanning");
         scanner.Stop();
-        scanner.Cleanup();
-        WorkManager.getInstance().cancelAllWorkByTag("SCAN_JOB");
+        WorkManager.getInstance().cancelUniqueWork("scanJob");
     }
 
     private boolean runForegroundIfEnabled() {
@@ -83,10 +79,8 @@ public class RuuviScannerApplication extends Application {
             if (altBeaconMode) scanner = new AltBeaconScanner();
             else scanner = new RuuviTagScanner();
             scanner.Init(me);
-            foreground = false;
         }
 
-        if (foreground) return;
         foreground = true;
 
         Toast.makeText(me, "AltBeacon scanner = " + (altBeaconMode ? "YES" : "NO"), Toast.LENGTH_SHORT).show();
@@ -101,14 +95,17 @@ public class RuuviScannerApplication extends Application {
             return;
         }
         if (prefs.getUseAltBeacon()) {
+            //scanner.Stop();
+            //scanner.Cleanup();
+            //scanner.Init(me);
             ((AltBeaconScanner)scanner).StartBackground();
         } else {
-            int scanInterval = new Preferences(getApplicationContext()).getBackgroundScanInterval() * 1000;
-            int minInterval = 15 * 60 * 1000;
+            int scanInterval = new Preferences(getApplicationContext()).getBackgroundScanInterval();
+            int minInterval = 15 * 60;
             if (scanInterval < minInterval) scanInterval = minInterval;
 
             PeriodicWorkRequest.Builder builder =
-                    new PeriodicWorkRequest.Builder(ScanWork.class, scanInterval, TimeUnit.MILLISECONDS)
+                    new PeriodicWorkRequest.Builder(ScanWork.class, scanInterval, TimeUnit.SECONDS)
                             .addTag("SCAN_JOB");
             WorkManager.getInstance().enqueueUniquePeriodicWork("scanJob", ExistingPeriodicWorkPolicy.REPLACE, builder.build());
         }
@@ -154,6 +151,7 @@ public class RuuviScannerApplication extends Application {
     Foreground.Listener listener = new Foreground.Listener() {
         public void onBecameForeground() {
             Log.d(TAG, "onBecameForeground");
+            stopBackgroundScanning();
             startForegroundScanning();
         }
 

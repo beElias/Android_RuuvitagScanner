@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements RuuviTagListener 
 
     public static void setBackgroundScanning(final Context context) {
         Log.d(TAG, "DEBUG, setBackgroundScan");
-        ((RuuviScannerApplication)(((Activity)context).getApplication())).startForegroundScanning();
+        //((RuuviScannerApplication)(((Activity)context).getApplication())).startForegroundScanning();
         /*
         Log.d(TAG, "DEBUG, stopped bg scan");
         ServiceUtils su = new ServiceUtils(context);

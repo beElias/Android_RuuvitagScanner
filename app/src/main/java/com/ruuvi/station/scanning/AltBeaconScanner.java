@@ -11,12 +11,13 @@ import com.ruuvi.station.util.Utils;
 
 import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
-import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.Region;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.TimeUnit;
+
 public class AltBeaconScanner implements BeaconConsumer, IScanner {
-    private static final String TAG = "AltBeaconIScanner";
+    private static final String TAG = "AltBeaconScanner";
     private BeaconManager beaconManager;
     private Region region;
     private RuuviRangeNotifier ruuviRangeNotifier;
@@ -25,8 +26,9 @@ public class AltBeaconScanner implements BeaconConsumer, IScanner {
 
     @Override
     public void Init(@NotNull Context context) {
+        Log.d(TAG, "Init");
         this.context = context;
-        ruuviRangeNotifier = new RuuviRangeNotifier(context, "AltBeaconIScanner");
+        ruuviRangeNotifier = new RuuviRangeNotifier(context, "AltBeaconScanner");
         region = new Region("com.ruuvi.station.leRegion", null, null, null);
     }
 
@@ -38,18 +40,8 @@ public class AltBeaconScanner implements BeaconConsumer, IScanner {
     }
 
     public void StartBackground() {
+        Log.d(TAG, "Starting background scanning");
         bindBeaconManager(getApplicationContext());
-        int scanInterval = new Preferences(getApplicationContext()).getBackgroundScanInterval() * 1000;
-        int minInterval = 15 * 60 * 1000;
-        if (scanInterval < minInterval) scanInterval = minInterval;
-        if (scanInterval != beaconManager.getBackgroundBetweenScanPeriod()) {
-            beaconManager.setBackgroundBetweenScanPeriod(scanInterval);
-            try {
-                beaconManager.updateScanPeriods();
-            } catch (Exception e) {
-                Log.e(TAG, "Could not update scan intervals");
-            }
-        }
         beaconManager.setBackgroundMode(true);
         if (ruuviRangeNotifier != null) ruuviRangeNotifier.gatewayOn = true;
         //if (medic == null) medic = setupMedic(getApplicationContext());
@@ -80,10 +72,11 @@ public class AltBeaconScanner implements BeaconConsumer, IScanner {
     }
 
     private void bindBeaconManager(Context context) {
+        Log.d(TAG, "bindBeaconManager");
         if (beaconManager == null) {
             beaconManager = BeaconManager.getInstanceForApplication(context.getApplicationContext());
+            //beaconManager.setDebug(true);
             Utils.setAltBeaconParsers(beaconManager);
-            beaconManager.setBackgroundScanPeriod(5000);
             beaconManager.bind(this);
         } else if (!running) {
             running = true;
@@ -95,10 +88,26 @@ public class AltBeaconScanner implements BeaconConsumer, IScanner {
         }
     }
 
+    private void setScanIntervals() {
+        Log.d(TAG, "Setting scan intervals");
+        beaconManager.setForegroundBetweenScanPeriod(0L);
+        beaconManager.setForegroundBetweenScanPeriod(TimeUnit.SECONDS.toMillis(1));
+        beaconManager.setBackgroundScanPeriod(Constants.DEFAULT_SCAN_INTERVAL);
+        int scanInterval = new Preferences(getApplicationContext()).getBackgroundScanInterval();
+        int minInterval = 15 * 60;
+        if (scanInterval < minInterval) scanInterval = minInterval;
+        beaconManager.setBackgroundBetweenScanPeriod(TimeUnit.SECONDS.toMillis(scanInterval));
+        try {
+            beaconManager.updateScanPeriods();
+        } catch (Exception e) {
+            Log.e(TAG, "Could not update scan intervals");
+        }
+    }
 
     @Override
     public void onBeaconServiceConnect() {
         Log.d(TAG, "onBeaconServiceConnect");
+        setScanIntervals();
         if (!beaconManager.getRangingNotifiers().contains(ruuviRangeNotifier)) {
             beaconManager.addRangeNotifier(ruuviRangeNotifier);
         }
@@ -117,11 +126,12 @@ public class AltBeaconScanner implements BeaconConsumer, IScanner {
 
     @Override
     public void unbindService(ServiceConnection serviceConnection) {
+        getApplicationContext().unbindService(serviceConnection);
     }
 
     @Override
     public boolean bindService(Intent intent, ServiceConnection serviceConnection, int i) {
-        return false;
+        return getApplicationContext().bindService(intent, serviceConnection, i);
     }
 
 }

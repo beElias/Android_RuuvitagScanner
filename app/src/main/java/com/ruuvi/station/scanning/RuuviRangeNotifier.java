@@ -17,6 +17,7 @@ import com.ruuvi.station.util.AlarmChecker;
 import com.ruuvi.station.util.Constants;
 
 import org.altbeacon.beacon.Beacon;
+import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 
